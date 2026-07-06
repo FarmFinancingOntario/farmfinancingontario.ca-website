@@ -141,6 +141,12 @@ The repository includes `.github/workflows/deploy-pages.yml`, which builds the V
 
 In the GitHub repository settings, configure Pages to use **GitHub Actions** as the build and deployment source.
 
+Add the production contact Worker URL as a repository variable before rebuilding:
+
+```bash
+VITE_CONTACT_WORKER_URL=https://your-contact-form-worker.your-subdomain.workers.dev
+```
+
 ## Notes
 
 - Do not hardcode the Cashly CRM webhook URL in frontend code.

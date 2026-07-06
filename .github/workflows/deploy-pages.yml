@@ -32,6 +32,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_CONTACT_WORKER_URL: ${{ vars.VITE_CONTACT_WORKER_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
