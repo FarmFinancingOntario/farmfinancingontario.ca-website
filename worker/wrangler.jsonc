@@ -1,0 +1,8 @@
+{
+  "name": "farm-financing-contact-form",
+  "compatibility_date": "2026-07-06",
+  "main": "contact-form-worker.ts",
+  "vars": {
+    "ALLOWED_ORIGIN": "https://farmfinancingontario.ca,https://www.farmfinancingontario.ca"
+  }
+}

@@ -81,7 +81,7 @@ Protection layers:
 - Cloudflare Turnstile widget in the React form
 - Mandatory server-side Turnstile token validation in the Worker
 - Hidden honeypot field
-- Minimum and maximum form completion timing checks
+- Stale form submission timing check
 - Server-side field validation and max-length limits
 - Optional Cloudflare KV rate limiting by visitor IP
 - Optional `ALLOWED_ORIGIN` allowlist for browser requests
@@ -146,6 +146,14 @@ Deploy the Worker:
 npx wrangler deploy worker/contact-form-worker.ts --name farm-financing-contact-form
 ```
 
+The Worker config lives at:
+
+```bash
+worker/wrangler.jsonc
+```
+
+It includes the non-secret `ALLOWED_ORIGIN` setting. Keep private values in Cloudflare secrets, not in this file.
+
 Set the production Cashly webhook as a secret:
 
 ```bash
@@ -171,7 +179,7 @@ npx wrangler kv namespace create RATE_LIMIT_KV
 npx wrangler kv namespace create RATE_LIMIT_KV --preview
 ```
 
-Copy `worker/wrangler.toml.example` to `worker/wrangler.toml`, add the KV namespace IDs, and keep `worker/wrangler.toml` out of the public repo if it contains account-specific values.
+Use `worker/wrangler.toml.example` as a reference if you later add KV namespace bindings. Keep account-specific config files out of the public repo if they contain private or client-specific values.
 
 After deployment, update the frontend environment variable:
 

@@ -42,7 +42,6 @@ type WorkerHandler = {
 };
 
 const maxBodyBytes = 25_000;
-const minimumCompletionSeconds = 2;
 const maximumCompletionSeconds = 60 * 60;
 const rateLimitWindowSeconds = 10 * 60;
 const rateLimitMaxSubmissions = 5;
@@ -177,22 +176,16 @@ function validateSubmission(payload: LeadSubmission) {
     return "Verification is required.";
   }
 
-  if (!payload.formStartedAt) {
-    return "Submission timing is required.";
-  }
+  if (payload.formStartedAt) {
+    const startedAt = Date.parse(payload.formStartedAt);
 
-  const startedAt = Date.parse(payload.formStartedAt);
-  if (Number.isNaN(startedAt)) {
-    return "Submission timing is invalid.";
-  }
+    if (!Number.isNaN(startedAt)) {
+      const elapsedSeconds = (Date.now() - startedAt) / 1000;
 
-  const elapsedSeconds = (Date.now() - startedAt) / 1000;
-  if (elapsedSeconds < minimumCompletionSeconds) {
-    return "Please wait a moment before submitting.";
-  }
-
-  if (elapsedSeconds > maximumCompletionSeconds) {
-    return "Please refresh the page and submit again.";
+      if (elapsedSeconds > maximumCompletionSeconds) {
+        return "Please refresh the page and submit again.";
+      }
+    }
   }
 
   return null;
