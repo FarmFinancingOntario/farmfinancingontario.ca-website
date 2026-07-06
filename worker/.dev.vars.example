@@ -1,0 +1,2 @@
+CASHLY_WEBHOOK_URL=https://cashly.example.com/webhooks/your-webhook-id
+ALLOWED_ORIGIN=http://localhost:5173
