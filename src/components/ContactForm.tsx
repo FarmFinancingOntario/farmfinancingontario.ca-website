@@ -1,4 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useState } from "react";
+import TurnstileWidget from "./TurnstileWidget";
 
 type FormState = {
   fullName: string;
@@ -8,10 +9,11 @@ type FormState = {
   financingNeed: string;
   financingAmount: string;
   message: string;
+  companyWebsite: string;
   consent: boolean;
 };
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+type FormErrors = Partial<Record<keyof FormState | "turnstileToken", string>>;
 type SubmitState = "idle" | "loading" | "success" | "error";
 
 const initialFormState: FormState = {
@@ -22,6 +24,7 @@ const initialFormState: FormState = {
   financingNeed: "",
   financingAmount: "",
   message: "",
+  companyWebsite: "",
   consent: false,
 };
 
@@ -43,7 +46,7 @@ const financingNeeds = [
   "Debt consolidation",
 ];
 
-function validateForm(form: FormState) {
+function validateForm(form: FormState, turnstileToken: string) {
   const errors: FormErrors = {};
 
   if (!form.fullName.trim()) {
@@ -76,6 +79,10 @@ function validateForm(form: FormState) {
     errors.consent = "Consent is required before submitting.";
   }
 
+  if (!turnstileToken) {
+    errors.turnstileToken = "Complete the verification before submitting.";
+  }
+
   return errors;
 }
 
@@ -84,11 +91,25 @@ function ContactForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [formStartedAt, setFormStartedAt] = useState(() =>
+    new Date().toISOString(),
+  );
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const workerUrl = useMemo(
     () => import.meta.env.VITE_CONTACT_WORKER_URL as string | undefined,
     [],
   );
+  const turnstileSiteKey = useMemo(
+    () => import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined,
+    [],
+  );
+
+  const handleTurnstileTokenChange = useCallback((token: string) => {
+    setTurnstileToken(token);
+    setErrors((current) => ({ ...current, turnstileToken: undefined }));
+  }, []);
 
   const updateField = (field: keyof FormState, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -99,7 +120,19 @@ function ContactForm() {
     event.preventDefault();
     setStatusMessage("");
 
-    const validationErrors = validateForm(form);
+    if (!turnstileSiteKey) {
+      setErrors((current) => ({
+        ...current,
+        turnstileToken: "Form verification is not configured.",
+      }));
+      setSubmitState("error");
+      setStatusMessage(
+        "Form verification is not configured. Add VITE_TURNSTILE_SITE_KEY before deploying.",
+      );
+      return;
+    }
+
+    const validationErrors = validateForm(form, turnstileToken);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setSubmitState("error");
@@ -119,6 +152,8 @@ function ContactForm() {
 
     const payload = {
       ...form,
+      turnstileToken,
+      formStartedAt,
       source: "farm-financing-ontario-website",
       formName: "Farm Financing Solution Lead Form",
       submittedAt: new Date().toISOString(),
@@ -148,9 +183,14 @@ function ContactForm() {
         "Thank you. Your financing request has been sent successfully.",
       );
       setForm(initialFormState);
+      setFormStartedAt(new Date().toISOString());
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
       setErrors({});
     } catch (error) {
       setSubmitState("error");
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
       setStatusMessage(
         error instanceof Error
           ? error.message
@@ -165,6 +205,20 @@ function ContactForm() {
       className="rounded-lg border border-oat bg-white p-6 shadow-soft sm:p-8"
       noValidate
     >
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="companyWebsite">Company website</label>
+        <input
+          id="companyWebsite"
+          name="companyWebsite"
+          value={form.companyWebsite}
+          onChange={(event) =>
+            updateField("companyWebsite", event.target.value)
+          }
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <FieldWrapper
           label="Full name"
@@ -304,6 +358,15 @@ function ContactForm() {
       </div>
 
       <div className="mt-6">
+        <TurnstileWidget
+          key={turnstileResetKey}
+          siteKey={turnstileSiteKey}
+          error={errors.turnstileToken}
+          onTokenChange={handleTurnstileTokenChange}
+        />
+      </div>
+
+      <div className="mt-6">
         <label className="flex gap-3 text-sm leading-6 text-stone-700">
           <input
             type="checkbox"
@@ -328,7 +391,7 @@ function ContactForm() {
 
       <button
         type="submit"
-        disabled={submitState === "loading"}
+        disabled={submitState === "loading" || !turnstileSiteKey}
         className="focus-ring mt-7 inline-flex w-full items-center justify-center rounded-md bg-field px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-moss disabled:cursor-not-allowed disabled:bg-stone-400"
       >
         {submitState === "loading"

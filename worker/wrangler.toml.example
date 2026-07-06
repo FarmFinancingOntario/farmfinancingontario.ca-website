@@ -1,0 +1,11 @@
+name = "farm-financing-contact-form"
+main = "contact-form-worker.ts"
+compatibility_date = "2026-07-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://farmfinancingontario.ca,https://www.farmfinancingontario.ca"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "replace-with-production-kv-namespace-id"
+preview_id = "replace-with-preview-kv-namespace-id"

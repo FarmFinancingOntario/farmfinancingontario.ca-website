@@ -6,3 +6,4 @@ dist
 .DS_Store
 *.local
 .wrangler
+worker/wrangler.toml
