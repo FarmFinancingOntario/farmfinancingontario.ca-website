@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://farmfinancingontario.ca/sitemap.xml

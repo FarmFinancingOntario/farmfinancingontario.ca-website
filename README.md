@@ -197,6 +197,24 @@ Use:
 - Output directory: `dist`
 - Required environment variable: `VITE_CONTACT_WORKER_URL`
 
+## SEO and Search Console
+
+The site includes crawl and indexing assets in `public/`:
+
+- `robots.txt` allows crawling and points crawlers to the sitemap.
+- `sitemap.xml` lists the canonical homepage at `https://farmfinancingontario.ca/`.
+- `logo.png` is published as a stable public asset for the favicon, Open Graph image, and structured data.
+
+After deployment, confirm these URLs load:
+
+```text
+https://farmfinancingontario.ca/robots.txt
+https://farmfinancingontario.ca/sitemap.xml
+https://farmfinancingontario.ca/logo.png
+```
+
+Then submit `https://farmfinancingontario.ca/sitemap.xml` in Google Search Console under **Indexing > Sitemaps** and use **URL inspection** on `https://farmfinancingontario.ca/` to request indexing.
+
 ## GitHub Pages
 
 The repository includes `.github/workflows/deploy-pages.yml`, which builds the Vite app and deploys `dist` to GitHub Pages whenever changes are pushed to `main`.
@@ -248,5 +266,5 @@ Remove conflicting parked-domain, forwarding, or wildcard records for `@`, `www`
 - Do not hardcode the Cashly CRM webhook URL in frontend code.
 - Use production origins for `ALLOWED_ORIGIN` to restrict browser submissions.
 - Do not commit `CASHLY_WEBHOOK_URL` or `TURNSTILE_SECRET_KEY`.
-- The page title is `Farm Financing Solution`.
+- The page title is `Farm Financing Ontario | Farm Mortgage and Rural Land Loans`.
 - The displayed business name is `Farm Financing Ontario`.
